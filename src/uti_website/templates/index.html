@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>UTI Diagnostic System - Three Musketeers</title>
+    <meta name="description" content="AI-Powered Urinalysis Diagnostic Tool" />
+
+    <link
+      href="{{ url_for('static', filename='assets/img/3musketeers.jpg') }}"
+      rel="icon"
+    />
+    <link
+      href="{{ url_for('static', filename='assets/img/3musketeers.jpg') }}"
+      rel="3musketeers"
+    />
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      href="{{ url_for('static', filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='assets/vendor/bootstrap-icons/bootstrap-icons.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='assets/vendor/aos/aos.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='assets/vendor/fontawesome-free/css/all.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='assets/vendor/glightbox/css/glightbox.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.css') }}"
+      rel="stylesheet"
+    />
+
+    <link
+      href="{{ url_for('static', filename='assets/css/main.css') }}"
+      rel="stylesheet"
+    />
+
+    <style>
+      .result-section {
+        scroll-margin-top: 100px;
+      }
+      .feature-icon {
+        font-size: 2rem;
+        color: #3fbbc0;
+        margin-bottom: 15px;
+      }
+      .accordion-button:not(.collapsed) {
+        background-color: #f1f7f8;
+        color: #3fbbc0;
+      }
+      .confidence-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        margin-left: 0.5rem;
+      }
+      .result-card {
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+      .result-card:hover {
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+      }
+      .risk-progress {
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .observation-item {
+        border-left: 3px solid #3fbbc0;
+        padding-left: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      .stat-badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+      }
+      .clinical-advisory {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #3fbbc0;
+      }
+    </style>
+  </head>
+
+  <body class="index-page">
+    <header id="header" class="header sticky-top">
+      <div class="branding d-flex align-items-center">
+        <div
+          class="container position-relative d-flex align-items-center justify-content-between"
+        >
+          <a href="/" class="logo d-flex align-items-center me-auto">
+            <h1 class="sitename">Three Musketeers</h1>
+          </a>
+
+          <nav id="navmenu" class="navmenu">
+            <ul>
+              <li><a href="#hero" class="active">Diagnostic Tool</a></li>
+              <li><a href="#info">How It Works</a></li>
+              {% if prediction is defined %}
+              <li><a href="#results">View Results</a></li>
+              {% endif %}
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section id="hero" class="hero section light-background">
+        <img
+          src="{{ url_for('static', filename='assets/img/hero-bg.jpg') }}"
+          alt=""
+          data-aos="fade-in"
+        />
+
+        <div class="container position-relative">
+          <div class="row gy-5" data-aos="fade-in">
+            <div
+              class="col-lg-4 order-2 order-lg-1 d-flex flex-column justify-content-center text-center text-lg-start"
+            >
+              <h2>AI-Powered Urinalysis</h2>
+              <p>
+                Enter patient lab parameters below to generate an instant
+                diagnostic report using our Hybrid ML Engine.
+              </p>
+
+              {% if prediction is defined %}
+              <div class="alert alert-success mt-3 shadow-sm border-0">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Analysis Complete!</strong><br />
+                Scroll down or
+                <a href="#results" class="alert-link">Click Here</a> to see the
+                report.
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="col-lg-8 order-1 order-lg-2">
+              <div
+                class="card shadow border-0"
+                style="background: rgba(255, 255, 255, 0.95)"
+              >
+                <div class="card-header bg-primary text-white text-center py-3">
+                  <h4 class="mb-0 text-white">Input Lab Data</h4>
+                </div>
+                <div class="card-body p-4">
+                  <form method="POST" action="/">
+                    <div class="row g-2">
+                      <div class="col-md-6">
+                        <label class="small fw-bold">Age</label
+                        ><input
+                          type="number"
+                          name="Age"
+                          class="form-control form-control-sm"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label class="small fw-bold">Gender</label>
+                        <select
+                          name="Gender"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="FEMALE">Female</option>
+                          <option value="MALE">Male</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="small fw-bold">Color</label>
+                        <select name="Color" class="form-select form-select-sm">
+                          <option value="YELLOW">Yellow</option>
+                          <option value="LIGHT YELLOW">Light Yellow</option>
+                          <option value="DARK YELLOW">Dark Yellow</option>
+                          <option value="STRAW">Straw</option>
+                          <option value="AMBER">Amber</option>
+                          <option value="LIGHT RED">Light Red</option>
+                          <option value="REDDISH">Reddish</option>
+                          <option value="REDDISH YELLOW">Reddish Yellow</option>
+                          <option value="RED">Red</option>
+                          <option value="BROWN">Brown</option>
+                        </select>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="small fw-bold">Transparency</label>
+                        <select
+                          name="Transparency"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="CLEAR">Clear</option>
+                          <option value="HAZY">Hazy</option>
+                          <option value="SLIGHTLY HAZY">Slightly Hazy</option>
+                          <option value="CLOUDY">Cloudy</option>
+                          <option value="TURBID">Turbid</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Glucose</label>
+                        <select
+                          name="Glucose"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="NEGATIVE">Neg</option>
+                          <option value="TRACE">Trace</option>
+                          <option value="1+">1+</option>
+                          <option value="2+">2+</option>
+                          <option value="3+">3+</option>
+                          <option value="4+">4+</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Protein</label>
+                        <select
+                          name="Protein"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="NEGATIVE">Neg</option>
+                          <option value="TRACE">Trace</option>
+                          <option value="1+">1+</option>
+                          <option value="2+">2+</option>
+                          <option value="3+">3+</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="small fw-bold">pH</label
+                        ><input
+                          type="number"
+                          step="0.1"
+                          name="pH"
+                          class="form-control form-control-sm"
+                          value="6.0"
+                        />
+                      </div>
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Sp. Gravity</label
+                        ><input
+                          type="number"
+                          step="0.001"
+                          name="Specific Gravity"
+                          class="form-control form-control-sm"
+                          value="1.015"
+                        />
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="small fw-bold">WBC</label>
+                        <input
+                          type="text"
+                          name="WBC"
+                          class="form-control form-control-sm"
+                          list="wbc_options"
+                          placeholder="0-2 or >50"
+                          pattern="^([<>]=? ?)?\d+(?:-\d+)?$|^(LOADED|TNTC|loaded|tntc)$"
+                          title="Valid formats: '0-2', '5', '>50', '<5', 'LOADED', 'TNTC'"
+                          required
+                        />
+                        <datalist id="wbc_options">
+                          <option value="0-2"></option>
+                          <option value="2-5"></option>
+                          <option value="10-20"></option>
+                          <option value=">50"></option>
+                          <option value="LOADED"></option>
+                          <option value="TNTC"></option>
+                        </datalist>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="small fw-bold">RBC</label>
+                        <input
+                          type="text"
+                          name="RBC"
+                          class="form-control form-control-sm"
+                          list="rbc_options"
+                          placeholder="0-2 or >20"
+                          pattern="^([<>]=? ?)?\d+(?:-\d+)?$|^(LOADED|TNTC|loaded|tntc)$"
+                          title="Valid formats: '0-2', '5', '>20', '<5', 'LOADED', 'TNTC'"
+                          required
+                        />
+                        <datalist id="rbc_options">
+                          <option value="0-2"></option>
+                          <option value="2-5"></option>
+                          <option value=">20"></option>
+                          <option value="LOADED"></option>
+                          <option value="TNTC"></option>
+                        </datalist>
+                      </div>
+
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Bacteria</label>
+                        <select
+                          name="Bacteria"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="NONE SEEN">None</option>
+                          <option value="RARE">Rare</option>
+                          <option value="OCCASIONAL">Occasional</option>
+                          <option value="FEW">Few</option>
+                          <option value="MODERATE">Mod</option>
+                          <option value="MANY">Many</option>
+                          <option value="PLENTY">Plenty</option>
+                          <option value="LOADED">Loaded</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Epithelial</label>
+                        <select
+                          name="Epithelial Cells"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="NONE SEEN">None</option>
+                          <option value="RARE">Rare</option>
+                          <option value="OCCASIONAL">Occasional</option>
+                          <option value="FEW">Few</option>
+                          <option value="MODERATE">Mod</option>
+                          <option value="MANY">Many</option>
+                          <option value="PLENTY">Plenty</option>
+                          <option value="LOADED">Loaded</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Mucous</label>
+                        <select
+                          name="Mucous Threads"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="NONE SEEN">None</option>
+                          <option value="RARE">Rare</option>
+                          <option value="OCCASIONAL">Occasional</option>
+                          <option value="FEW">Few</option>
+                          <option value="MODERATE">Mod</option>
+                          <option value="MANY">Many</option>
+                          <option value="PLENTY">Plenty</option>
+                          <option value="LOADED">Loaded</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="small fw-bold">Urates</label>
+                        <select
+                          name="Amorphous Urates"
+                          class="form-select form-select-sm"
+                        >
+                          <option value="NONE SEEN">None</option>
+                          <option value="RARE">Rare</option>
+                          <option value="OCCASIONAL">Occasional</option>
+                          <option value="FEW">Few</option>
+                          <option value="MODERATE">Mod</option>
+                          <option value="MANY">Many</option>
+                          <option value="PLENTY">Plenty</option>
+                          <option value="LOADED">Loaded</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="mt-4">
+                      <button
+                        type="submit"
+                        class="btn btn-primary w-100 py-2 fw-bold text-uppercase"
+                      >
+                        Analyze Sample
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Replace your #info section with this improved version -->
+
+      <section id="info" class="about section">
+        <div class="container" data-aos="fade-up">
+          <div class="section-title text-center mb-5">
+            <h2>Understanding Urinalysis</h2>
+            <p>
+              Our AI analyzes multiple biomarkers to detect patterns associated
+              with 7 different clinical conditions.
+            </p>
+          </div>
+
+          <div class="row gy-4">
+            <div class="col-lg-6">
+              <h4 class="mb-3 text-primary">Infection Markers (UTI)</h4>
+              <div class="accordion" id="accordionExample">
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseOne"
+                    >
+                      <i class="fas fa-shield-virus me-2"></i> Leukocytes (WBC)
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseOne"
+                    class="accordion-collapse collapse show"
+                    data-bs-parent="#accordionExample"
+                  >
+                    <div class="accordion-body">
+                      <strong>What it tells us:</strong> White Blood Cells
+                      (WBCs) are the body's immune response to infection.
+                      Elevated levels ("Pyuria") suggest the bladder or kidneys
+                      are fighting an active infection.
+                      <span class="text-muted">Normal: 0-5 per HPF</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseTwo"
+                    >
+                      <i class="fas fa-bacterium me-2"></i> Bacteria
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseTwo"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionExample"
+                  >
+                    <div class="accordion-body">
+                      <strong>What it tells us:</strong> Urine is normally
+                      sterile. Bacteria presence
+                      <strong>suggests</strong> infection, especially when
+                      combined with elevated WBCs. However, improper sample
+                      collection can also introduce bacteria (contamination).
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseThree"
+                    >
+                      <i class="fas fa-eye me-2"></i> Transparency & Turbidity
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseThree"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionExample"
+                  >
+                    <div class="accordion-body">
+                      <strong>What it tells us:</strong> Cloudy or turbid urine
+                      often indicates pus (WBCs), bacteria, crystals, or mucous.
+                      Combined with other abnormal findings, it strengthens the
+                      case for infection.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <h4 class="mb-3 text-primary">Other Detected Conditions</h4>
+              <div class="accordion" id="accordionOther">
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseFour"
+                    >
+                      <i class="fas fa-cube me-2"></i> Diabetes (Glucose)
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseFour"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionOther"
+                  >
+                    <div class="accordion-body">
+                      <strong>Indicator:</strong> Glucose present in urine (1+
+                      to 4+).<br />
+                      <strong>Logic:</strong> The kidneys normally reabsorb all
+                      glucose. "Glycosuria" occurs when blood sugar exceeds ~180
+                      mg/dL, causing glucose to spill into urine, a classic sign
+                      of diabetes or uncontrolled blood sugar.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseFive"
+                    >
+                      <i class="fas fa-filter me-2"></i> Kidney Disease
+                      (Protein)
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseFive"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionOther"
+                  >
+                    <div class="accordion-body">
+                      <strong>Indicator:</strong> Protein (1+ to 3+).<br />
+                      <strong>Logic:</strong> Healthy kidneys retain protein in
+                      the blood. "Proteinuria" indicates glomerular damage or
+                      stress. <span><strong>Note:</strong></span> Temporary
+                      proteinuria can occur with fever, vigorous exercise,
+                      dehydration, or pregnancy.
+                      <strong>Persistent</strong> proteinuria requires medical
+                      evaluation.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseSix"
+                    >
+                      <i class="fas fa-tint me-2"></i> Hematuria (Blood)
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseSix"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionOther"
+                  >
+                    <div class="accordion-body">
+                      <strong>Indicator:</strong> RBC > 3 per HPF or Red/Reddish
+                      Color.<br />
+                      <strong>Logic:</strong> Red blood cells in urine can
+                      indicate:
+                      <ul class="mb-0 mt-2">
+                        <li>Kidney stones or bladder injury</li>
+                        <li>Severe urinary tract infection</li>
+                        <li>Glomerulonephritis (kidney inflammation)</li>
+                        <li>
+                          <strong class="text-danger"
+                            >Urinary tract tumors</strong
+                          >
+                          (especially in adults over 40)
+                        </li>
+                        <li>Benign causes: vigorous exercise, menstruation</li>
+                      </ul>
+                      <span class="d-block mt-2">
+                        <strong
+                          >Medical evaluation is essential to determine the
+                          cause.</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseSeven"
+                    >
+                      <i class="fas fa-procedures me-2"></i> Liver Issues
+                      (Bilirubin)
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseSeven"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionOther"
+                  >
+                    <div class="accordion-body">
+                      <strong>Indicator:</strong> Brown, Dark Amber, or
+                      Tea-Colored urine.<br />
+                      <strong>Logic:</strong> Dark urine can indicate bilirubin
+                      from liver dysfunction (hepatitis, cirrhosis) or bile duct
+                      obstruction. <span class="text-info">However</span>,
+                      <strong>severe dehydration</strong>
+                      is a more common cause of dark urine and should be ruled
+                      out first.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseEight"
+                    >
+                      <i class="fas fa-water me-2"></i> Dehydration
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseEight"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionOther"
+                  >
+                    <div class="accordion-body">
+                      <strong>Indicator:</strong> High Specific Gravity
+                      (>1.025), Dark Yellow color, or Amorphous Urates
+                      present.<br />
+                      <strong>Logic:</strong> Highly concentrated urine means
+                      the body is conserving water. Specific gravity above 1.030
+                      indicates significant dehydration. Older adults (60+) are
+                      at higher risk.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseNine"
+                    >
+                      <i class="fas fa-exclamation-triangle me-2"></i> Sample
+                      Contamination
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseNine"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#accordionOther"
+                  >
+                    <div class="accordion-body">
+                      <strong>Indicator:</strong> High Epithelial Cells or
+                      Mucous Threads.<br />
+                      <strong>Logic:</strong> Epithelial cells are shed from
+                      skin and genital areas. High levels suggest the sample was
+                      contaminated during collection (not a clean-catch
+                      midstream sample). This can cause false-positive results
+                      for bacteria and protein.
+                      <span class="text-danger"
+                        >A repeat sample may be needed.</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-5">
+            <div class="col-12">
+              <div class="card bg-light border-primary">
+                <div class="card-body">
+                  <h5 class="card-title text-danger">
+                    <i class="fas fa-user-md me-2"></i>Medical Disclaimer
+                  </h5>
+                  <p class="card-text small text-muted mb-0">
+                    This system uses Artificial Intelligence to analyze patterns
+                    in urinalysis data.
+                    <strong
+                      >It is NOT a replacement for professional medical
+                      diagnosis.</strong
+                    ><br /><br />
+
+                    <strong>Dataset Limitations:</strong> This model was trained
+                    on standard urinalysis parameters available in our dataset
+                    (Age, Gender, WBC, RBC, Bacteria, Protein, Glucose, pH,
+                    Specific Gravity, Color, Transparency, Epithelial Cells,
+                    Mucous Threads, And Amorphous Urates).
+                    <span>
+                      <strong>Important tests not included:</strong>
+                    </span>
+                    Nitrites, Leukocyte Esterase, Ketones, Bilirubin,
+                    Urobilinogen, Crystals, and Casts. If your laboratory report
+                    includes these additional tests, they should be reviewed by
+                    a healthcare provider alongside this AI analysis.<br /><br />
+
+                    A "Negative" result does not guarantee absence of disease,
+                    and a "Positive" result is not a final diagnosis. Urinalysis
+                    is a screening tool clinical symptoms, physical examination,
+                    and additional testing (such as urine culture) are often
+                    necessary for accurate diagnosis.<br /><br />
+                    <strong
+                      >Always consult a licensed healthcare provider</strong
+                    >
+                    for interpretation, confirmation, and treatment planning.
+                    This tool is intended for educational purposes and clinical
+                    decision support only.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {% if prediction is defined %}
+      <section id="results" class="result-section section bg-white">
+        <div class="container" data-aos="fade-up">
+          <div class="section-title text-center mb-5">
+            <h2>Analysis Results</h2>
+            <p>Comprehensive Diagnostic Report generated by Hybrid AI System</p>
+          </div>
+
+          <div class="row gy-4">
+            <div class="col-lg-6">
+              <div
+                class="card h-100 shadow border-primary border-2 result-card"
+              >
+                <div class="card-header bg-primary text-white text-center">
+                  <h4 class="mb-0 text-white">
+                    <i class="fas fa-robot me-2"></i>UTI Prediction (AI Model)
+                  </h4>
+                </div>
+                <div
+                  class="card-body text-center d-flex flex-column justify-content-center p-5"
+                >
+                  <div class="mb-4">
+                    <h1 class="display-4 fw-bold mb-2">
+                      {% if prediction == 1 %}
+                      <span class="text-danger"
+                        >{{ uti_advice['status'] }}</span
+                      >
+                      {% else %}
+                      <span class="text-success"
+                        >{{ uti_advice['status'] }}</span
+                      >
+                      {% endif %}
+                    </h1>
+
+                    <div
+                      class="d-flex align-items-center justify-content-center"
+                    >
+                      <span class="text-muted me-2">AI Confidence:</span>
+                      {% if prediction == 1 %}
+                      <span class="badge bg-danger confidence-badge">
+                        <i class="fas fa-chart-line me-1"></i>{{
+                        uti_advice['confidence'] }}
+                      </span>
+                      {% else %}
+                      <span class="badge bg-success confidence-badge">
+                        <i class="fas fa-chart-line me-1"></i>{{
+                        uti_advice['confidence'] }}
+                      </span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <h5 class="small fw-bold text-uppercase text-muted mb-2">
+                      Risk Level:
+                      <span class="text-dark"
+                        >{{ uti_advice['severity'] }}</span
+                      >
+                    </h5>
+                    <div class="progress risk-progress">
+                      <div
+                        class="progress-bar {% if prediction == 1 %}bg-danger{% else %}bg-success{% endif %}"
+                        role="progressbar"
+                        aria-valuenow="{{ probability }}"
+                        style="--w: {{ probability }}%; width: var(--w);"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div class="clinical-advisory p-4 mt-4 rounded text-start">
+                    <h5 class="mb-3 text-dark border-bottom pb-2">
+                      <i class="fas fa-stethoscope me-2 text-primary"></i
+                      >Clinical Advisory
+                    </h5>
+
+                    <p class="mb-0 text-dark">
+                      {{ uti_advice['recommendation'] }}
+                    </p>
+
+                    {% if prediction == 1 %}
+                    <div class="mt-3">
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Why? Model detected patterns consistent with infection.
+                      </small>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div
+                class="card h-100 shadow border-primary border-2 result-card"
+              >
+                <div class="card-header bg-primary text-white text-center">
+                  <h4 class="mb-0 text-white">
+                    <i class="fas fa-user-md me-2"></i>General Health Check
+                    (Expert Rules)
+                  </h4>
+                </div>
+                <div class="card-body p-4">
+                  <div class="mb-4">
+                    <div
+                      class="d-flex justify-content-between align-items-start mb-3"
+                    >
+                      <div>
+                        <h5
+                          class="text-muted small text-uppercase fw-bold mb-1"
+                        >
+                          Primary Finding
+                        </h5>
+                        <h3 class="text-dark fw-bold mb-0">
+                          {{ rule_results['primary_condition'].replace('_', ' ')
+                          }}
+                        </h3>
+                      </div>
+
+                      {% if rule_results['primary_condition'] == 'Normal' %}
+                      <span class="badge bg-success stat-badge">Healthy</span>
+                      {% else %}
+                      <span class="badge bg-danger stat-badge"
+                        >Attention Needed</span
+                      >
+                      {% endif %}
+                    </div>
+
+                    <div class="alert alert-light border">
+                      <small class="text-muted d-block mb-1"
+                        >Analysis Summary:</small
+                      >
+                      <strong class="text-dark"
+                        >{{ rule_results['advisory'] }}</strong
+                      >
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <h5 class="text-muted small text-uppercase fw-bold mb-3">
+                      Why did we get this result?
+                    </h5>
+
+                    {% set primary = rule_results['primary_condition'] %} {% if
+                    rule_results['reasons'][primary] %} {% for reason in
+                    rule_results['reasons'][primary] %}
+                    <div class="observation-item">
+                      <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle text-warning me-3"></i>
+                        <div>
+                          <p class="mb-0 text-dark small">{{ reason }}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %} {% else %}
+                    <div class="observation-item">
+                      <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success me-3"></i>
+                        <div>
+                          <p class="mb-0 text-dark small">
+                            No specific risk factors detected for this
+                            condition.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <hr class="my-4" />
+
+                  <div>
+                    <h5 class="text-muted small text-uppercase fw-bold mb-3">
+                      Risk Probability Breakdown
+                    </h5>
+                    <div class="row g-3">
+                      {% for condition, score in
+                      rule_results['probabilities'].items() %}
+                      <div class="col-md-6">
+                        <div class="card border-0 bg-light h-100">
+                          <div class="card-body">
+                            <div
+                              class="d-flex justify-content-between align-items-center mb-2"
+                            >
+                              <small class="fw-bold text-dark"
+                                >{{ condition.replace('_', ' ') }}</small
+                              >
+
+                              {% if score > 50 %}
+                              <span class="badge bg-danger">{{ score }}%</span>
+                              {% elif score > 20 %}
+                              <span class="badge bg-warning text-dark"
+                                >{{ score }}%</span
+                              >
+                              {% else %}
+                              <span class="badge bg-success">{{ score }}%</span>
+                              {% endif %}
+                            </div>
+
+                            <div class="progress risk-progress">
+                              <div
+                                class="progress-bar {% if score > 50 %}bg-danger{% elif score > 20 %}bg-warning{% else %}bg-success{% endif %}"
+                                role="progressbar"
+                                aria-valuenow="{{ score }}"
+                                style="--w: {{ score }}%; width: var(--w);"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+
+                  <div class="mt-4 pt-3 border-top">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-2">
+                      Generated Recommendations
+                    </h6>
+                    <ul class="list-unstyled small mb-0">
+                      {% if rule_results['primary_condition'] == 'Normal' %}
+                      <li class="mb-1">
+                        <i class="fas fa-check-circle text-success me-2"></i
+                        >Maintain current hydration levels.
+                      </li>
+                      <li class="mb-1">
+                        <i class="fas fa-check-circle text-success me-2"></i
+                        >Routine checkup in 6-12 months.
+                      </li>
+                      {% else %}
+                      <li class="mb-1">
+                        <i
+                          class="fas fa-exclamation-circle text-danger me-2"
+                        ></i
+                        >Consult a doctor regarding
+                        <strong>{{ rule_results['primary_condition'] }}</strong
+                        >.
+                      </li>
+                      <li class="mb-1">
+                        <i class="fas fa-flask text-primary me-2"></i>Further
+                        lab testing may be required.
+                      </li>
+                      {% endif %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-warning text-center mt-5 border-0 shadow-sm">
+            <div class="d-flex align-items-center justify-content-center">
+              <i
+                class="fas fa-exclamation-triangle text-warning me-3 fa-lg"
+              ></i>
+              <div class="text-start">
+                <strong>Important Reminder:</strong> This result is generated by
+                a computer model. Please share these findings with a qualified
+                healthcare provider for confirmation and treatment planning.
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <a href="/" class="btn btn-outline-primary btn-lg px-5 py-3">
+              <i class="fas fa-redo me-2"></i>Clear & Analyze New Sample
+            </a>
+          </div>
+        </div>
+      </section>
+      {% endif %}
+    </main>
+
+    <footer id="footer" class="footer light-background">
+      <div class="container copyright text-center mt-4">
+        <p>
+          © <span>Copyright</span>
+          <strong class="px-1 sitename">Three Musketeers</strong>
+          <span>All Rights Reserved</span>
+        </p>
+      </div>
+    </footer>
+
+    <a
+      href="#"
+      id="scroll-top"
+      class="scroll-top d-flex align-items-center justify-content-center"
+      ><i class="bi bi-arrow-up-short"></i
+    ></a>
+
+    <script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/aos/aos.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+  </body>
+</html>
